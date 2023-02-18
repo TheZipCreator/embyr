@@ -17,3 +17,5 @@ embyr-test-*
 # vim
 *.swp
 *~
+
+.test/
