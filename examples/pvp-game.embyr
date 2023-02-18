@@ -1,0 +1,14 @@
+PLAYER_EVENT Join:
+	PLAYER_ACTION SetAllowPVP tag["PVP" "Enable"];
+	PLAYER_ACTION AllPlayers SendMessage txt"\&a+ \&e%default has joined.";
+	PLAYER_ACTION GiveItems item{id:"minecraft:iron_sword",Count:1b};
+
+PLAYER_EVENT Leave:
+	PLAYER_ACTION AllPlayers SendMessage txt"\&c- \&e%default has left.";
+
+PLAYER_EVENT Respawn:
+	PLAYER_ACTION GiveItems item{id:"minecraft:iron_sword",Count:1b};
+
+PLAYER_EVENT KillPlayer:
+	SET_VAR += var"%default kills"s num"1";
+	PLAYER_ACTION AllPlayers SendMessage txt"\&4%default \&chas killed \&4%victim\&c. They now have %var(%default kills) kills.";

@@ -49,14 +49,18 @@ abstract class Action : CodeBlock {
 	Tag[][string] actions() { return null; }
 	
 	string action;
+	string target;
 
 	string block() { return ""; }
 
-	this(JSONValue[] items, TagValue[] tagvs, string action) {
+	this(JSONValue[] items, TagValue[] tagvs, string action, string target) {
 		this.items = items;
 		this.action = action;
 		if(action !in actions)
 			throw new CompilerException("Invalid action '"~action~"'.");
+		if(!targets.canFind(target))
+			throw new CompilerException("Invalid target '"~target~"'.");
+		this.target = target;
 		auto tags = actions[action];
 		bool[string] found; // tags that have been found 
 	 	// find largest slot (important for detecting value/tag overlap)
@@ -111,6 +115,8 @@ abstract class Action : CodeBlock {
 		v["action"] = action;
 		v["id"] = "block";
 		v["block"] = block;
+		if(target != "")
+			v["target"] = target;
 		return v;
 	}
 }
@@ -182,8 +188,8 @@ class PlayerAction : Action {
 
 	override Tag[][string] actions() { return _actions; }
 
-	this(JSONValue[] items, TagValue[] tagvs, string action) {
-		super(items, tagvs, action);
+	this(JSONValue[] items, TagValue[] tagvs, string action, string target) {
+		super(items, tagvs, action, target);
 	}
 
 	override string block() {
@@ -217,8 +223,8 @@ class IfPlayer : Action {
 
 	override Tag[][string] actions() { return _actions; }
 
-	this(JSONValue[] items, TagValue[] tagvs, string action) {
-		super(items, tagvs, action);
+	this(JSONValue[] items, TagValue[] tagvs, string action, string target) {
+		super(items, tagvs, action, target);
 	}
 
 	override string block() {
@@ -243,8 +249,8 @@ class IfVar : Action {
 
 	override Tag[][string] actions() { return _actions; }
 
-	this(JSONValue[] items, TagValue[] tagvs, string action) {
-		super(items, tagvs, action);
+	this(JSONValue[] items, TagValue[] tagvs, string action, string target) {
+		super(items, tagvs, action, target);
 	}
 
 	override string block() {
@@ -301,8 +307,8 @@ class SetVar : Action {
 
 	override Tag[][string] actions() { return _actions; }
 
-	this(JSONValue[] items, TagValue[] tagvs, string action) {
-		super(items, tagvs, action);
+	this(JSONValue[] items, TagValue[] tagvs, string action, string target) {
+		super(items, tagvs, action, target);
 	}
 
 	override string block() {

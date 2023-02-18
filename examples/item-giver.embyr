@@ -1,0 +1,10 @@
+PLAYER_EVENT RightClick:
+	IF_PLAYER IsLookingAt loc[5 50 5] {
+		PLAYER_ACTION GiveItems item{id:"minecraft:oak_log",Count:1b};
+	}
+	IF_PLAYER IsLookingAt loc[5 50 6] {
+		PLAYER_ACTION GiveItems item{id:"minecraft:stone",Count:1b};
+	}
+	IF_PLAYER IsLookingAt loc[5 50 7] {
+		PLAYER_ACTION GiveItems item{id:"minecraft:diamond",Count:1b};
+	}

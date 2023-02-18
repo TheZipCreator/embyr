@@ -19,10 +19,10 @@ Embyr:
 	LeftRepeatPiston <- '<'
 	RightRepeatPiston <- '>'
 
-	PlayerActionBlock <- 'PLAYER_ACTION' :_ Identifier :_ (Values / ^eps) :_? Terminator
-	IfPlayerBlock <- 'IF_PLAYER' :_ Identifier :_ (Values / ^eps) :_? Terminator
-	IfVarBlock <- 'IF_VAR' :_ Identifier :_ (Values / ^eps) :_? Terminator
-	SetVarBlock <- 'SET_VAR' :_ Identifier :_ (Values / ^eps) :_? Terminator
+	PlayerActionBlock <- 'PLAYER_ACTION' :_ ((Identifier / ^eps) :_?) Identifier :_ (Values / ^eps) :_? Terminator
+	IfPlayerBlock <- 'IF_PLAYER' :_ ((Identifier / ^eps) :_?) Identifier :_ (Values / ^eps) :_? Terminator
+	IfVarBlock <- 'IF_VAR' :_ ^eps Identifier :_ (Values / ^eps) :_? Terminator
+	SetVarBlock <- 'SET_VAR' :_ ^eps Identifier :_ (Values / ^eps) :_? Terminator
 
 
 	Values <- (:_? Value :_?)*
@@ -51,7 +51,7 @@ Embyr:
 	RawString <~ backquote (!backquote .*) backquote
 	NormalString <- doublequote (EscapeSequence / CharSeq)* doublequote
 
-	EscapeSequence <- backslash (backslash / doublequote / 'n' / 'r' / 't' / '&')
+	EscapeSequence <~ backslash (backslash / doublequote / 'n' / 'r' / 't' / '&')
 	CharSeq <~ (!EscapeSequence !doublequote .)*
 
 	Terminator <- ';' / &LeftPiston / &RightPiston / &LeftRepeatPiston / &RightRepeatPiston

@@ -46,7 +46,7 @@ bool addtags;
 
 /// List of all valid targets
 static immutable string[] targets = [
-	"Selection", "Default", "Killer", "Damager", "Victim", "Shooter", "Projectile", "LastEntity"
+	"", "Selection", "Default", "Killer", "Damager", "Victim", "Shooter", "Projectile", "LastEntity", "AllPlayers"
 ];
 
 private:
@@ -238,25 +238,28 @@ CodeBlock[] parseBlocks(ParseTree pt) {
 	foreach(b; pt) {
 		b = b[0];
 		try {
+			void add(T)() {
+				auto vals = parseValues(b[2]);
+				string target = "";
+				if(b[0].name != "eps")
+					target = b[0].matches[0];
+				res ~= new T(vals[0], vals[1], b[1].matches[0], target);
+			}
 			final switch(b.name) {
 				case "Embyr.PlayerActionBlock": {
-					auto vals = parseValues(b[1]);
-					res ~= new PlayerAction(vals[0], vals[1], b[0].matches[0]);
+					add!PlayerAction();
 					break;
 				}
 				case "Embyr.IfPlayerBlock": {
-					auto vals = parseValues(b[1]);
-					res ~= new IfPlayer(vals[0], vals[1], b[0].matches[0]);
+					add!IfPlayer();
 					break;
 				}
 				case "Embyr.IfVarBlock": {
-					auto vals = parseValues(b[1]);
-					res ~= new IfVar(vals[0], vals[1], b[0].matches[0]);
+					add!IfVar();
 					break;
 				}
 				case "Embyr.SetVarBlock": {
-					auto vals = parseValues(b[1]);
-					res ~= new SetVar(vals[0], vals[1], b[0].matches[0]);
+					add!SetVar();
 					break;
 				}
 				case "Embyr.LeftPiston": {
