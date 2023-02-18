@@ -8,7 +8,7 @@ It also provides a way to write DiamondFire code through exclusively text, if yo
 
 ## Examples
 
-# A simple Hello, World!
+### A simple Hello, World!
 This sends the player a message when they join the plot.
 ```
 PLAYER_EVENT Join:
@@ -17,7 +17,7 @@ PLAYER_EVENT Join:
 There's a few things to note here. The first one is declarations. Declarations are the generic name that Embyr gives to things such as Player Events, Functions, or Processes. This file contains a single declaration (`PLAYER_EVENT Join:`) but a file may contain as many declarations as necessary. Each declaration is converted into 1 or more code templates.
 Also note the `txt` prefix before `"Hello, World!"`. This tells the compiler that this is *text*, and not another datatype. This is important, because in DiamondFire, things such as numbers may also contain arbitrary text (this is why you can type things like `%math(2+3)` into a number). As such, the datatype is almost always prefixed before the value.
 Another thing to look at is the semicolon (`;`) after the player action. All codeblocks must end with a semicolon, or a brace ('{', '}' for pistons, '<', '>' for sticky pistons). This is so you can wrap code blocks over multiple lines, which may be useful for setting up things like inventory menus.
-# Item Giver
+### Item Giver
 This is a program that assumes the existence of signs at some given coordinates. It then will detect which sign the player clicked on, and give an item accordingly.
 ```
 PLAYER_EVENT RightClick:
@@ -33,7 +33,7 @@ PLAYER_EVENT RightClick:
 ```
 This shows off the location syntax, and `IF_PLAYER`. Locations are of the form `loc[x y z]` or `loc[x y z pitch yaw]`, and they're used here to give coordinates which the player is expected to click at.
 Also notable is the `item` literal, which uses the SNBT (String Named Binary Table) format, which is something Minecraft natively supports (and DF uses to encode items).
-# A simple PVP game
+### A simple PVP game
 ```
 PLAYER_EVENT Join:
 	PLAYER_ACTION SetAllowPVP tag["PVP" "Enable"];
