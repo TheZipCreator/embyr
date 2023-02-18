@@ -1,0 +1,19 @@
+.dub
+docs.json
+__dummy.html
+docs/
+/embyr
+embyr.so
+embyr.dylib
+embyr.dll
+embyr.a
+embyr.lib
+embyr-test-*
+*.exe
+*.o
+*.obj
+*.lst
+
+# vim
+*.swp
+*~

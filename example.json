@@ -1,0 +1,30 @@
+{
+    "blocks": [
+        {
+            "action": "Join",
+            "args": {
+                "items": []
+            },
+            "block": "event",
+            "id": "block"
+        },
+        {
+            "action": "SendMessage",
+            "args": {
+                "items": [
+                    {
+                        "item": {
+                            "data": {
+                                "name": "Hello, World!"
+                            },
+                            "id": "txt"
+                        },
+                        "slot": 0
+                    }
+                ]
+            },
+            "block": "player_action",
+            "id": "block"
+        }
+    ]
+}

@@ -1,0 +1,12 @@
+PLAYER_EVENT Join:
+	IF_VAR = var"%default joined"s num"0" {
+		SET_VAR = var"%default joined"s num"1";
+		SET_VAR = var"%default clicks"s num"0";
+	}
+	PLAYER_ACTION GiveItems item{id:"minecraft:stick",Count:1b};
+
+PLAYER_EVENT RightClick:
+	IF_PLAYER IsHolding item{id:"minecraft:stick",Count:1b} {
+		SET_VAR += var"%default clicks"s num"1";
+		PLAYER_ACTION SendMessage txt"You have" var"%default clicks"s txt"clicks!";
+	}

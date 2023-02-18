@@ -1,0 +1,8 @@
+{
+	"fileVersion": 1,
+	"versions": {
+		"pegged": "0.4.6",
+		"sel-nbt": "2.3.0",
+		"xbuffer": "1.0.0"
+	}
+}

@@ -1,0 +1,32 @@
+[
+    {
+        "blocks": [
+            {
+                "action": "Join",
+                "args": {
+                    "items": []
+                },
+                "block": "event",
+                "id": "block"
+            },
+            {
+                "action": "GiveItems",
+                "args": {
+                    "items": [
+                        {
+                            "item": {
+                                "data": {
+                                    "item": "{Count:1b,id:\"minecraft:oak_log\"}"
+                                },
+                                "id": "item"
+                            },
+                            "slot": 0
+                        }
+                    ]
+                },
+                "block": "player_action",
+                "id": "block"
+            }
+        ]
+    }
+]

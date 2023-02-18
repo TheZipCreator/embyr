@@ -1,0 +1,18 @@
+
+/setblock ~ ~1 ~ minecraft:chest{
+	"Items": [
+
+{
+	"Slot": 0b,
+	"id": "minecraft:ender_chest",
+	"Count": 1b,
+	"tag": {
+		"PublicBukkitValues": {
+			"hypercube:codetemplatedata": "{\"author\":\"Embyr Compiler\",\"name\":\"Player Event RightClick\",\"version\":1,\"code\":\"H4sIAAAAAAAAA61SwU7DMAz9leJzNQ1EOfQ2kBBI7DIQFzRNIfFC1DSpkgw2pvw7zrqVbmJiSNziZ/v5+TlreNWWVx7KlzUwHpQ1UMJEybdwoxWvIAfmJKXXoALWqW4a87aJCvEdTaAaJShowZj3iO79g7WVMnIUfmBqXwkRLLBNxl+3zHOmPeZAQYIbFfgblMPBMIcllOeDIocVlMVw82Af29QnlJeDIsatntRMb69toIKk63DcEZ277dR81mi2QkeYbXal0liH2VwvlPCUCEwSepvCrLYCIXZ2zFKuU3BxFfvW9ckP7BPKIacOGoqmSzvGK0zywqpBAkhGve/2IxoxRu+ZxJPcNqxORHeotT3rdIdlONW2/YG7zdq1ZtuqnnUjITLfMI7fvj3hMmTPTC8wG6OTdIHj/hX/qWWCcqGZ64SMtJKmpt+cjf9wxEP6Y4fk2nr85ZLT+AUeBwoXjQMAAA==\"}"
+		},
+		"display": {
+			"Name": "{\"text\":\"Player Event RightClick\"}"
+		}
+	}
+}
+							]}
