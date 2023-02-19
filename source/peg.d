@@ -79,7 +79,7 @@ Embyr:
 
 # SNBT syntax
 
-	SNBTValue <- SNBTCompound / SNBTFloat / SNBTByte / SNBTShort / SNBTLong / SNBTDouble / SNBTInt / SNBTBoolean / NormalString / SNBTList / SNBTByteArray / SNBTIntArray / SNBTLongArray
+	SNBTValue <- SNBTCompound / SNBTFloat / SNBTByte / SNBTShort / SNBTLong / SNBTDouble / SNBTInt / SNBTBoolean / SNBTString / SNBTList / SNBTByteArray / SNBTIntArray / SNBTLongArray
 
 	SNBTCompound <- '{' :_? SNBTCompoundEntry (:_? ',' :_? SNBTCompoundEntry :_?)* :_? '}'
 	SNBTCompoundEntry <- (Identifier / NormalString) :_? ':' :_? SNBTValue
@@ -91,7 +91,12 @@ Embyr:
 	SNBTLong <- '-'? [0-9]+ ('l' / 'L')
 	SNBTFloat <- '-'? [0-9]+ ('.' [0-9]*)? ('f' / 'F')
 	SNBTDouble <- '-'? [0-9]+ '.' [0-9]*
-# TODO: create custom SNBTString instead of using NormalString
+
+	SNBTString <- SNBTSingleString / SNBTDoubleString
+	SNBTDoubleString <- doublequote SNBTDoubleChar* doublequote
+	SNBTDoubleChar <- backslash doublequote / !doublequote .
+	SNBTSingleString <- quote SNBTSingleChar* quote
+	SNBTSingleChar <- backslash quote / !quote .
 
 	SNBTList <- '[' :_? SNBTValue (:_? ',' :_? SNBTValue :_? )* :_? ']'
 	SNBTByteArray <- '[B;' :_? SNBTByte (:_? ',' SNBTByte)* :_? ']'
