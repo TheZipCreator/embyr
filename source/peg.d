@@ -17,7 +17,7 @@ Embyr:
 
 	Block <- PlayerActionBlock / IfPlayerBlock / IfVarBlock / SetVarBlock / CallFuncBlock / StartProcessBlock / ControlBlock / GameActionBlock
 		/ RepeatWhileBlock / RepeatBlock / IfGameBlock / ElseBlock / EntityActionBlock / IfEntityBlock / SelectObjectBlock
-		/ LeftPiston / RightPiston / LeftRepeatPiston / RightRepeatPiston / Definition
+		/ LeftRepeatPiston / RightRepeatPiston / LeftPiston / RightPiston / Definition
 
 	LeftPiston <- '{'
 	RightPiston <- '}'
@@ -63,7 +63,7 @@ Embyr:
 
 	Not <- 'NOT'
 
-	Identifier <~ [a-zA-Z0-9_\-\+\*\/%=<>]+
+	Identifier <~ [a-zA-Z0-9_\-\+\*\/%=<>\!]+
 	Number <~ '-'? [0-9]+ ('.' [0-9]*)?
 	String <- NormalString / RawString
 

@@ -329,7 +329,7 @@ CodeBlock[] parseBlocks(ParseTree pt) {
 					addAction!GameAction();
 					break;
 				case "Embyr.RepeatBlock":
-					addAction!GameAction();
+					addAction!Repeat();
 					break;
 					// TODO: Repeat while
 				case "Embyr.ElseBlock":
