@@ -226,7 +226,7 @@ Tuple!(JSONValue[], TagValue[]) parseValues(ParseTree pt) {
 				if(v.children.length > 1) {
 					final switch(v[1].matches[0]) {
 						case "g":
-							type = "unsvaed";
+							type = "unsaved";
 							break;
 						case "s":
 							type = "saved";
