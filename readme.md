@@ -78,4 +78,5 @@ This creates a definition for `stick`, and sets it to the item `item{id:"minecra
 - NOT Arrow
 ### Values
 - Particles (and also all related actions)
-
+## Syntax Highlighting
+Vim - A syntax highlight file for Vim is available [here](https://pastebin.com/jDUBELer)
