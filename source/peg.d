@@ -8,8 +8,8 @@ Embyr:
 
 	Declaration <- PlayerEventDecl / FunctionDecl / ProcessDecl / Definition
 	PlayerEventDecl <- 'PLAYER_EVENT' :_? Identifier :_? ':' :_? Blocks?
-	FunctionDecl <- 'FUNCTION' :_? Identifier :_? (ValuesPlus / ^eps) :_? ':' :_? Blocks?
-	ProcessDecl <- 'PROCESS' :_? Identifier :_? (ValuesPlus / ^eps) :_? ':' :_? Blocks?
+	FunctionDecl <- 'FUNCTION' :_? Identifier :_? (Values / ^eps) :_? ':' :_? Blocks?
+	ProcessDecl <- 'PROCESS' :_? Identifier :_? (Values / ^eps) :_? ':' :_? Blocks?
 
 	Blocks <- (:_? Block :_?)+
 
@@ -37,9 +37,7 @@ Embyr:
 
 	Definition <- Identifier :_? '=' :_? Value :_? ';'
 
-	Values <- (:_? Value :_?)*
-
-	ValuesPlus <- (:_? Value :_?)+
+	Values <- (:_? Value :_?)+
 
 	Value <- TxtValue / NumValue / LocValue / VarValue / GameValue / VecValue / SndValue / PotionValue / TagValue / ItemValue / Identifier # / ParticleValue
 	TxtValue <- 'txt' :_? String 

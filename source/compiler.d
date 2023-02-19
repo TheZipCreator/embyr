@@ -316,6 +316,9 @@ CodeBlock[] parseBlocks(ParseTree pt) {
 					add!GameAction();
 					break;
 					// TODO: Repeat while
+				case "Embyr.ElseBlock":
+					res ~= new Else();
+					break;
 				case "Embyr.CallFuncBlock": {
 					res ~= new CallFunction(b[0].matches[0]);
 					break;

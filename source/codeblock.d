@@ -14,6 +14,16 @@ struct TagValue {
 	string option;
 }
 
+class Else : CodeBlock {
+	this() {}
+	JSONValue toJSON() {
+		return JSONValue([
+			"block": "else",
+			"id": "block"
+		]);
+	}
+}
+
 class Piston : CodeBlock {
 	bool dir; /// false = open, true = close
 	bool type; /// false = norm, true = repeat
