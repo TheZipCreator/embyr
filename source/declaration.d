@@ -56,6 +56,25 @@ class PlayerEvent : Declaration {
 	}
 }
 
+/// Entity events
+class EntityEvent : Declaration {
+	/// List of valid entity events
+	static immutable string[] entityEvents = [
+		"EntityDmgEntity", "EntityKillEntity", "EntityDmg", "ProjDmgEntity", "ProjKillEntity", "EntityDeath", "VehicleDamage", "BlockFall", "FallingBlockLand"
+	];
+
+	this(CodeBlock[] blocks, string evtname) {
+		super(blocks);
+		if(!entityEvents.canFind(evtname))
+			throw new CompilerException("Invalid player event '"~evtname~"'.");
+		start["action"] = evtname;
+		start["args"] = ["items": emptyArray];
+		start["block"] = "entity_event";
+		start["id"] = "block";
+		name = "Entity Event "~evtname;
+	}
+}
+
 /// Declarations with arguments
 abstract class ArgDeclaration : Declaration {
 	JSONValue[] items;

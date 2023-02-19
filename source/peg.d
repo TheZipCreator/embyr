@@ -6,15 +6,17 @@ mixin(grammar(`
 Embyr:
 	Program <- (:_? Declaration :_?)* endOfInput
 
-	Declaration <- PlayerEventDecl / FunctionDecl / ProcessDecl / Definition
+	Declaration <- PlayerEventDecl / EntityEventDecl / FunctionDecl / ProcessDecl / Definition
+	
 	PlayerEventDecl <- 'PLAYER_EVENT' :_? Identifier :_? ':' :_? Blocks?
+	EntityEventDecl <- 'ENTITY_EVENT' :_? Identifier :_? ':' :_? Blocks?
 	FunctionDecl <- 'FUNCTION' :_? Identifier :_? (Values / ^eps) :_? ':' :_? Blocks?
 	ProcessDecl <- 'PROCESS' :_? Identifier :_? (Values / ^eps) :_? ':' :_? Blocks?
 
 	Blocks <- (:_? Block :_?)+
 
 	Block <- PlayerActionBlock / IfPlayerBlock / IfVarBlock / SetVarBlock / CallFuncBlock / StartProcessBlock / ControlBlock / GameActionBlock
-		/ RepeatWhileBlock / RepeatBlock / IfGameBlock / ElseBlock
+		/ RepeatWhileBlock / RepeatBlock / IfGameBlock / ElseBlock / EntityActionBlock / IfEntityBlock / SelectObjectBlock
 		/ LeftPiston / RightPiston / LeftRepeatPiston / RightRepeatPiston / Definition
 
 	LeftPiston <- '{'
@@ -23,11 +25,14 @@ Embyr:
 	RightRepeatPiston <- '}$'
 
 	PlayerActionBlock <- 'PLAYER_ACTION' :_ (Target :_ / ^eps) Identifier :_ (Values / ^eps) :_? Terminator
+	EntityActionBlock <- 'ENTITY_ACTION' :_ (Target :_ / ^eps) Identifier :_ (Values / ^eps) :_? Terminator
 	GameActionBlock <- 'GAME_ACTION' :_ (Target ;_ / ^eps) Identifier :_ (Values / ^eps) :_? Terminator
 	IfPlayerBlock <- 'IF_PLAYER' :_ (Target :_ / ^eps) (Not :_ / ^eps) Identifier :_ (Values / ^eps) :_? Terminator
+	IfEntityBlock <- 'IF_ENTITY' :_ (Target :_ / ^eps) (Not :_ / ^eps) Identifier :_ (Values / ^eps) :_? Terminator
 	IfVarBlock <- 'IF_VAR' :_ ^eps (Not :_ / ^eps) Identifier :_ (Values / ^eps) :_? Terminator
 	IfGameBlock <- 'IF_GAME' :_ ^eps (Not :_ / ^eps) Identifier :_ (Values / ^eps) :_? Terminator
 	SetVarBlock <- 'SET_VAR' :_ ^eps Identifier :_ (Values / ^eps) :_? Terminator
+	SelectObjectBlock <- 'SELECT_OBJECT' :_ ^eps Identifier :_ (Values / ^eps) :_? Terminator
 	CallFuncBlock <- 'CALL_FUNCTION' :_ Identifier :_? Terminator
 	StartProcessBlock <- 'START_PROCESS' :_ Identifier :_ (Values / ^eps) :_? Terminator
 	ControlBlock <- 'CONTROL' :_ ^eps Identifier :_ (Values / ^eps) :_? Terminator
@@ -62,7 +67,7 @@ Embyr:
 	Number <~ '-'? [0-9]+ ('.' [0-9]*)?
 	String <- NormalString / RawString
 
-	Target <- 'Selection' / 'Default' / 'Killer' / 'Damager' / 'Victim' / 'Shooter' / 'Projectile' / 'LastEntity' / 'AllPlayers'
+	Target <- 'Selection' / 'Default' / 'Killer' / 'Damager' / 'Victim' / 'Shooter' / 'Projectile' / 'LastEntity' / 'AllPlayers' / 'AllEntities' / 'AllMobs'
 
 	RawString <~ backquote (!backquote .*) backquote
 	NormalString <- doublequote (EscapeSequence / CharSeq)* doublequote

@@ -260,6 +260,84 @@ class PlayerAction : Action {
 	}
 }
 
+/// An entity action.
+class EntityAction : Action {
+	static Tag[][string] _actions;
+
+	static this() {
+		_actions = [
+			// Statistics
+			"Heal": [], "SetHealth": [], "SetAbsorption": [], "SetMaxHealth": [Tag("Heal Mob to Max Health", ["False", "True"])], "Damage": [], "SetFireTicks": [],
+			"SetFreezeTicks": [Tag("Ticking Locked", ["Disable", "Enable"])], "SetInvulTicks": [],
+			"GivePotion": [Tag("Overwrite Effect", ["True", "False"]), Tag("Effect Particles", ["Regular", "Ambient", "None"])], "RemovePotion": [], 
+			"ClearPotions": [], "SetAge": [Tag("Age Lock", ["Don't change", "Enable", "Disable"])], "SetFallDistance": [], "SetCreeperFuse": [],
+			"SetCreeperPower": [], "SetCloudRadius": [], "SetVillagerExp": [], "SetWitherInvul": [], "SetHorseJump": [], "SetPickupDelay": [], "SetFishingTime": [],
+			"SetWardenAnger": [],
+			// Movement
+			"Teleport": [Tag("Keep Velocity", ["False", "True"]), Tag("Keep Current Rotation", ["False", "True"])],
+			"LaunchUp": [Tag("Add to Current Velocity", ["True", "False"])],
+			"LaunchFwd": [Tag("Add to Current Velocity", ["True", "False"]), Tag("Launch Axis", ["Pitch and Yaw", "Yaw Only"])],
+			"LaunchToward": [Tag("Add to Current Velocity", ["True", "False"]), Tag("Ignore Distance", ["False", "True"])],
+			"RideEntity": [], "SetGliding": [Tag("Gliding", ["Enable", "Disable"])], "BoostElytra": [], "SetGravity": [Tag("Gravity", ["Disable", "Enable"])],
+			"SetRotation": [], "SetVelocity": [Tag("Add to Current Velocity", ["False", "True"])], "AttachLead": [],
+			// Settings
+			"SetName": [Tag("Hide Name Tag", ["False", "True", "Don't Change"])], "SetNameVisible": [Tag("Name Tag Visible", ["Enable", "Disable"])],
+			"SetNameColor": [], "SetAI": [Tag("AI", ["None", "Sentient", "Insentient"])], "SetSilenced": [Tag("Silenced", ["Enable", "Disable"])], 
+			"SetDeathDrops": [Tag("Has Death Drops", ["Enable", "Disable"])], "SetCollidable": [Tag("Collision", ["Disable", "Enable"])],
+			"SetInvulnerable": [Tag("Invulnerable", ["Enable", "Disable"])], "SetMobSitting": [Tag("Is Sitting", ["Enable", "Disable"])],
+			"SetBaby": [Tag("Baby", ["Enable", "Disable"])], "SetSize": [], "SetSheepSheared": [Tag("Sheared", ["Enable", "Disable"])],
+			"SetSaddle": [Tag("Saddle", ["Enable", "Disable"])], "SetCarryingChest": [Tag("Carrying Chest", ["Enable", "Disable"])],
+			"ArmorStandSlots": [Tag("Interactions", ["Take, swap or place item", "Take or swap item", "Take item", "Place item", "None"]), Tag("Equipment Slot", ["All", "Main hand", "Off hand", "Head", "Chest", "Legs", "Feet"])],
+			"SetMarker": [Tag("Marker", ["Enable", "Disable"])], "SetAngry": [Tag("Angry", ["Enable", "Disable"])], 
+			"SetRearing": [Tag("Rearing", ["Enable", "Disable"])], "SetRiptiding": [Tag("Riptiding", ["Enable", "Disable"])], 
+			"CreeperCharged": [Tag("Charged", ["Enable", "Disable"])], "SetInvisible": [Tag("Invisible", ["Enable", "Disable"])],
+			"SetGoatScreaming": [Tag("Screams", ["Enable", "Disable"])], 
+			"SetGoatHorns": [Tag("Left Horn", ["Show", "Hide", "No Change"]), Tag("Right Horn", ["Show", "Hide", "No Change"])], "Tame": [], "EndCrystalBeam": [],
+			"SetPandaGene": [Tag("Set Gene", ["Main gene", "Hidden gene", "Both"]), Tag("Gene Type", ["Aggressive", "Lazy", "Weak", "Worried", "Playful", "Normal", "Brown"])],
+			"SetProfession": [Tag("Profession", ["Armorer", "Unemployed", "Butcher", "Cartographer", "Cleric", "Farmer", "Fisherman", "Fletcher", "Leatherworker", "Librarian", "Mason", "Nitwit", "Shepherd", "Toolsmith", "Weaponsmith"])],
+			"SetProjSource": [], "SetPersistent": [Tag("Persistent", ["Enable", "Disable"])],
+			// Appearance
+			"MobDisguise": [], "PlayerDisguise": [], "BlockDisguise": [], "Undisguise": [], "SetGlowing": [Tag("Glowing", ["Enable", "Disable"])],
+			"SetDyeColor": [Tag("Dye", ["White", "Orange", "Magenta", "Light blue", "Yellow", "Lime", "Pink", "Gray", "Light gray", "Cyan", "Purple", "Blue", "Brown", "Green", "Red", "Black"])],
+			"SetFishPattern": [Tag("Pattern Color", ["White", "Orange", "Magenta", "Light blue", "Yellow", "Lime", "Pink", "Gray", "Light gray", "Cyan", "Purple", "Blue", "Brown", "Green", "Red", "Black", "Don't Change"]), Tag("Body Color", ["White", "Orange", "Magenta", "Light blue", "Yellow", "Lime", "Pink", "Gray", "Light gray", "Cyan", "Purple", "Blue", "Brown", "Green", "Red", "Black", "Don't change"]), Tag("Pattern", ["Kob", "Sunstreak", "Snooper", "Dasher", "Brinely", "Spotty", "Flopper", "Stripey", "Glitter", "Blockfish", "Betty", "Clayfish", "Don't change"])],
+			"SetRabbitType": [Tag("Skin Type", ["Brown", "White", "Black", "Black and White", "Gold", "Salt and Pepper", "Killer"])],
+			"SetCatType": [Tag("Skin Type", ["Tabby", "Tuxedo", "Red", "Siamese", "British Shorthair", "Calico", "Persian", "Ragdoll", "White", "Jellie", "Black"])],
+			"MooshroomType": [Tag("Mooshroom Variant", ["Red", "Brown"])], "SetFoxType": [Tag("Fox Type", ["Red", "Snow"])],
+			"SetParrotColor": [Tag("Parrot Color", ["Red", "Blue", "Green", "Cyan", "Gray"])],
+			"SetHorsePattern": [Tag("Horse Color", ["Flaxen chestnut", "White", "Buckskin", "Bay", "Black", "Dapple gray", "Dark bay", "Don't change"]), Tag("Horse Markings", ["Stockings and blaze", "No markings", "Paint", "Snowflake appaloosa", "Sooty", "Don't change"])],
+			"SetAxolotlColor": [Tag("Axolotl Color", ["Pink", "Brown", "Yellow", "Cyan", "Blue"])],
+			"SetLlamaColor": [Tag("Llama Color", ["Brown", "Creamy", "White", "Gray"])], "SetFrogType": [Tag("Frog Type", ["Temperate", "Warm", "cold"])],
+			"SetVillagerBiome": [Tag("Biome", ["Desert", "Jungle", "Plains", "Savanna", "Snow", "Swamp", "Taiga"])], 
+			"SnowmanPumpkin": [Tag("Pumpkin", ["Disable", "Enable"])], "SetEndermanBlock": [], "SetMinecartBlock": [],
+			"ArmorStandParts": [Tag("Arms", ["Enable", "Disable", "Don't change"]), Tag("Base Plate", ["Enable", "Disable", "Don't change"])],
+			"SetBeeNectar": [Tag("Has Nectar", ["Enable", "Disable"])], "ProjectileItem": [], "SetVisualFire": [Tag("On Fire", ["True", "False"])],
+			"SendAnimation": [Tag("Animation Type", ["Hurt animation", "Crit particles", "Enchanted hit particles"])],
+			"ArmorStandPose": [Tag("Armor Stand Part", ["Head", "Body", "Left Arm", "Right Arm", "Left Leg", "Right Leg"])],
+			"SetPose": [Tag("Pose", ["Standing", "Sleeping", "Swimming", "Sneaking"])], "SetFoxLeaping": [Tag("Leaping", ["Enable", "Disable"])],
+			"SetArmsRaised": [Tag("Arms Raised", ["Enable", "Disable"])], "SetCatResting": [Tag("Resting", ["Enable", "Disable"])], "SetGlowSquidDark": [],
+			// AI
+			"SetCelebrating": [Tag("Celebrate", ["Enable", "Disable"])], "SetTarget": [], "MoveToLoc": [], "Jump": [], "Ram": [], "FrogEat": [], "SheepEat": [],
+			"IgniteCreeper": [], "Explode": [], "FoxSleeping": [Tag("Sleeping", ["Enable", "Disable"])],
+			"SetDragonPhase": [Tag("Phase", ["Flying", "Hovering", "Breath attack", "Dying"])], "SetBulletTarget": [],
+			"UseItem": [Tag("Hand", ["Main Hand", "Off Hand"]), Tag("Use Item", ["Enable", "Disable"])], "SetAllayDancing": [Tag("Dancing", ["Enable", "Disable"])],
+			// Miscellaneous
+			"Remove": [],  "SetEquipment": [Tag("Equipment Slot", ["Main hand", "Off hand", "Head", "Body", "Legs", "Feet", "Saddle", "Horse armor", "Decor"])],
+			"SetArmor": [], "LaunchProj": [], "ShearSheep": [], "SetCustomTag": [], "GetCustomTag": [], "RemoveCustomTag": [], "SetItem": [],
+			"SetDigging": [Tag("Digging Type", ["Emerge", "Dig Down"])], 
+		];
+	}
+
+	override Tag[][string] actions() { return _actions; }
+
+	this(JSONValue[] items, TagValue[] tagvs, string action, string target) {
+		super(items, tagvs, action, target);
+	}
+
+	override string block() {
+		return "entity_action";
+	}
+}
+
 class GameAction : Action {
 	static Tag[][string] _actions;
 
@@ -375,6 +453,30 @@ class IfVar : If {
 
 	override string block() {
 		return "if_var";
+	}
+}
+
+class IfEntity : If {
+	static Tag[][string] _actions;
+
+	static this() {
+		auto ignoreCase = Tag("IgnoreCase", ["False", "True"]);
+		_actions = [
+			"IsType": [], "NameEquals": [], "StandingOn": [], "IsGrounded": [], "IsNear": [Tag("Shape", ["Sphere", "Circle", "Cube", "Square"])],
+			"IsRiding": [Tag("Compare Text To", ["Entity type", "Name or UUID"])],
+			"HasPotion": [Tag("Check Properties", ["None", "Amplifier", "Duration", "Amplifier and Duration"]), Tag("Check Mode", ["Has any effect", "Has all effects"])],
+			"IsMob": [], "IsProj": [], "IsVehicle": [], "IsItem": [], "Exists": [], "HasCustomTag": [], "Is Sheared": []
+		];
+	}
+
+	override Tag[][string] actions() { return _actions; }
+
+	this(JSONValue[] items, TagValue[] tagvs, string action, string target, bool not) {
+		super(items, tagvs, action, target, not);
+	}
+
+	override string block() {
+		return "if_entity";
 	}
 }
 
@@ -537,3 +639,32 @@ class IfGame : If {
 		return "if_game";
 	}
 }
+
+class SelectObject : Action {
+	static Tag[][string] _actions;
+
+	static this() {
+		_actions = [
+			// Creating Selections
+			"EventTarget": [Tag("Event Target", ["Default", "Killer", "Damager", "Victim", "Shooter", "Projectile"])], "RandomPlayer": [], "LastEntity": [],
+			"PlayerName": [], "Entity Name": [], "AllPlayers": [], "AllEntities": [], "Invert": [],
+			// Selection Filters
+			"FilterDistance": [Tag("Ignore Y-Axis", ["False", "True"]), Tag("Compare Mode", ["Nearest", "Farthest"])], 
+			"FilterSort": [Tag("Sort Order", ["Ascending", "Descending"])], 
+			"FilterRay": [Tag("Block Collision", ["Solid Blocks", "All blocks", "Non-fluid blocks", "None"])], "Reset": []
+		];
+	}
+
+	override Tag[][string] actions() { return _actions; }
+
+	this(JSONValue[] items, TagValue[] tagvs, string action, string target) {
+		super(items, tagvs, action, target);
+	}
+
+	override string block() {
+		return "select_obj";
+	}
+}
+
+// TODO: repeat while, select object by conditions, filter selection by conditions
+//       ^ all of these should probably have a common superclass

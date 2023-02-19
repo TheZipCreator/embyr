@@ -71,10 +71,8 @@ This creates a definition for `stick`, and sets it to the item `item{id:"minecra
 
 ## Things that still need to be implemented
 ### Code Blocks
-- Entity Event
-- Entity Action
-- If Entity
-- Select Object
+- Select/Filter Objects by Condition
+- Repeat While
 ### Values
 - Particles (and also all related actions)
 ## Syntax Highlighting

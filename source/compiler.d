@@ -46,7 +46,7 @@ bool addtags;
 
 /// List of all valid targets
 static immutable string[] targets = [
-	"", "Selection", "Default", "Killer", "Damager", "Victim", "Shooter", "Projectile", "LastEntity", "AllPlayers"
+	"", "Selection", "Default", "Killer", "Damager", "Victim", "Shooter", "Projectile", "LastEntity", "AllPlayers", "AllEntities", "AllMobs"
 ];
 
 private:
@@ -283,14 +283,14 @@ CodeBlock[] parseBlocks(ParseTree pt) {
 	foreach(b; pt) {
 		b = b[0];
 		try {
-			void addAction(T)() {
+			void addAction(T : Action)() {
 				auto vals = parseValues(b[2]);
 				string target = "";
 				if(b[0].name != "eps")
 					target = b[0].matches[0];
 				res ~= new T(vals[0], vals[1], b[1].matches[0], target);
 			}
-			void addIf(T)() {
+			void addIf(T : If)() {
 				auto vals = parseValues(b[3]);
 				string target = "";
 				if(b[0].name != "eps")
@@ -301,8 +301,17 @@ CodeBlock[] parseBlocks(ParseTree pt) {
 				case "Embyr.PlayerActionBlock":
 					addAction!PlayerAction();
 					break;
+				case "Embyr.EntityActionBlock":
+					addAction!EntityAction();
+					break;
+				case "Embyr.SelectObjectBlock":
+					addAction!SelectObject();
+					break;
 				case "Embyr.IfPlayerBlock":
 					addIf!IfPlayer();
+					break;	
+				case "Embyr.IfEntityBlock":
+					addIf!IfEntity();
 					break;
 				case "Embyr.IfVarBlock":
 					addIf!IfVar();
@@ -378,6 +387,11 @@ public Declaration[] compile(string filename_, string filetext_, ParseTree pt, b
 				case "Embyr.PlayerEventDecl": {
 					auto blocks = decl.children.length > 1 ? parseBlocks(decl[1]) : [];
 					decls ~= new PlayerEvent(blocks, decl[0].matches[0]);
+					break;
+				}
+				case "Embyr.EntityEventDecl": {
+					auto blocks = decl.children.length > 1 ? parseBlocks(decl[1]) : [];
+					decls ~= new EntityEvent(blocks, decl[0].matches[0]);
 					break;
 				}
 				case "Embyr.FunctionDecl": {
