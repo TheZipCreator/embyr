@@ -22,6 +22,11 @@ abstract class Declaration {
 			v ~= b.toJSON();
 		return JSONValue(["blocks": v]);
 	}
+
+	/// Get the total size of this declaration
+	int size() {
+		return blocks.fold!"a+b.size"(0)+2;
+	}
 }
 
 /// Player events

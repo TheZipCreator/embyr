@@ -7,6 +7,7 @@ import compiler;
 /// A codeblock inside a declaration
 interface CodeBlock {
 	JSONValue toJSON(); /// Convert this codeblock to json
+	int size();
 }
 
 struct TagValue {
@@ -21,6 +22,9 @@ class Else : CodeBlock {
 			"block": "else",
 			"id": "block"
 		]);
+	}
+	int size() {
+		return 1;
 	}
 }
 
@@ -40,6 +44,10 @@ class Piston : CodeBlock {
 			"type": type ? "repeat" : "norm"
 		]);
 	}
+
+	int size() {
+		return dir ? 2 : 1;
+	}
 }
 
 class CallFunction : CodeBlock {
@@ -57,6 +65,10 @@ class CallFunction : CodeBlock {
 		]);
 		val["args"] = ["items": emptyArray];
 		return val;
+	}
+
+	int size() {
+		return 2;
 	}
 }
 
@@ -84,6 +96,10 @@ class StartProcess : CodeBlock {
 		]);
 		val["args"] = ["items": items];
 		return val;
+	}
+
+	int size() {
+		return 2;
 	}
 }
 
@@ -181,6 +197,10 @@ abstract class Action : CodeBlock {
 		if(target != "")
 			v["target"] = target;
 		return v;
+	}
+
+	int size() {
+		return 2;
 	}
 }
 
@@ -392,6 +412,10 @@ abstract class If : Action {
 	this(JSONValue[] items, TagValue[] tagvs, string action, string target, bool not) {
 		super(items, tagvs, action, target);
 		this.not = not;
+	}
+
+	override int size() {
+		return 1;
 	}
 }
 
