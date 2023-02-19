@@ -4,7 +4,7 @@ import std.stdio, std.getopt, std.file, std.json, std.base64, std.zlib, std.form
 
 import peg, compiler, declaration;
 
-enum VERSION = "0.2.0";
+enum VERSION = "0.2.1";
 
 int main(string[] args) {
 	enum Format {
