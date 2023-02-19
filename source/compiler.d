@@ -168,7 +168,7 @@ Tuple!(JSONValue[], TagValue[]) parseValues(ParseTree pt) {
 		auto o = emptyObject;
 		o["item"] = item;
 		o["slot"] = slot++;
-		if(slot > 26)
+		if(slot > 27)
 			throw new CompilerException("Too many items in code block.");
 		ret ~= o;
 	}
