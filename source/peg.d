@@ -44,7 +44,7 @@ Embyr:
 
 	Values <- (:_? Value :_?)+
 
-	Value <- TxtValue / NumValue / LocValue / VarValue / GameValue / VecValue / SndValue / PotionValue / TagValue / ItemValue / Identifier # / ParticleValue
+	Value <- TxtValue / NumValue / LocValue / VarValue / GameValue / VecValue / SndValue / PotValue / TagValue / ItemValue / Identifier # / ParticleValue
 	TxtValue <- 'txt' :_? String 
 	NumValue <- 'num' :_? String
 	LocValue <- 'loc' :_? '[' :_? Number :_ Number :_ Number (:_ Number :_ Number)? :_? ']' # x y z (pitch yaw)
@@ -53,7 +53,7 @@ Embyr:
 	GameValue <- 'g_val' :_? (String / '[' :_? String :_? String :_? ']') # name / name target  # target defaults to default
 	VecValue <- 'vec' :_? '[' :_? Number :_? Number :_? Number :_? ']' # x y z
 	SndValue <- 'snd' :_? '[' :_? String :_? Number :_? Number :_? ']' # name pitch vol
-	PotionValue <- 'pot' :_? '[' :_? String :_? Number :_? Number :_? ']' # pot amp dur
+	PotValue <- 'pot' :_? '[' :_? String :_? Number :_? Number :_? ']' # pot amp dur
 	TagValue <- 'tag' :_? '[' :_? String :_? String :_? ']' # tag option
 	ItemValue <- 'item' :_? ~SNBTCompound
 
