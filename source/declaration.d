@@ -2,8 +2,7 @@ module declaration;
 
 import std.json, std.algorithm;
 
-import compiler : CompilerException, emptyObject, emptyArray;
-import codeblock;
+import compiler, codeblock;
 
 /// General class for player events, entity events, functions, etc.
 abstract class Declaration {
@@ -54,5 +53,62 @@ class PlayerEvent : Declaration {
 		start["block"] = "event";
 		start["id"] = "block";
 		name = "Player Event "~evtname;
+	}
+}
+
+/// Declarations with arguments
+abstract class ArgDeclaration : Declaration {
+	JSONValue[] items;
+	string data;
+
+	string block() { return ""; }
+
+	Tag[] tags() { return []; }
+	
+	this(CodeBlock[] blocks, JSONValue[] items, TagValue[] tagvs, string data) {
+		super(blocks);
+		this.items = items;
+		this.name = name;
+		validateTags(this, "declaration '"~data~"'", block, "dynamic", tagvs, tags);
+		start["id"] = "block";
+		start["data"] = data;
+		start["block"] = block;
+		start["args"] = ["items": this.items];
+	}
+}
+
+/// Function declaration
+class Function : ArgDeclaration {
+	this(CodeBlock[] blocks, JSONValue[] items, TagValue[] tagvs, string data) {
+		super(blocks, items, tagvs, data);
+		name = "Function "~data;
+	}
+
+	override string block() { return "func"; }
+
+	static _tags = [
+		Tag("Is Hidden", ["False", "True"])
+	];
+
+	override Tag[] tags() {
+		return _tags;	
+	}
+}
+
+/// Process declaration
+class Process : ArgDeclaration {
+	this(CodeBlock[] blocks, JSONValue[] items, TagValue[] tagvs, string data) {
+		super(blocks, items, tagvs, data);
+		name = "Process "~data;
+	}
+
+	override string block() { return "process"; }
+
+	static _tags = [
+		Tag("Is Hidden", ["False", "True"])
+	];
+
+	override Tag[] tags() {
+		return _tags;	
 	}
 }

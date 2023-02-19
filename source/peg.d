@@ -4,30 +4,44 @@ import pegged.grammar;
 
 mixin(grammar(`
 Embyr:
-	Program <- Declaration* endOfInput
+	Program <- (:_? Declaration :_?)* endOfInput
 
-	Declaration <- PlayerEventDecl / FunctionDecl
-	PlayerEventDecl <- 'PLAYER_EVENT' :_? Identifier :_? ':' :_? (Blocks / ^eps)
-	FunctionDecl <- 'FUNCTION' :_? Identifier :_? ':' :_? (Blocks / ^eps)
+	Declaration <- PlayerEventDecl / FunctionDecl / ProcessDecl / Definition
+	PlayerEventDecl <- 'PLAYER_EVENT' :_? Identifier :_? ':' :_? Blocks?
+	FunctionDecl <- 'FUNCTION' :_? Identifier :_? (ValuesPlus / ^eps) :_? ':' :_? Blocks?
+	ProcessDecl <- 'PROCESS' :_? Identifier :_? (ValuesPlus / ^eps) :_? ':' :_? Blocks?
 
 	Blocks <- (:_? Block :_?)+
 
-	Block <- PlayerActionBlock / IfPlayerBlock / IfVarBlock / SetVarBlock / LeftPiston / RightPiston / LeftRepeatPiston / RightRepeatPiston
+	Block <- PlayerActionBlock / IfPlayerBlock / IfVarBlock / SetVarBlock / CallFuncBlock / StartProcessBlock / ControlBlock / GameActionBlock
+		/ RepeatWhileBlock / RepeatBlock / IfGameBlock / ElseBlock
+		/ LeftPiston / RightPiston / LeftRepeatPiston / RightRepeatPiston / Definition
 
 	LeftPiston <- '{'
 	RightPiston <- '}'
-	LeftRepeatPiston <- '<'
-	RightRepeatPiston <- '>'
+	LeftRepeatPiston <-  '${'
+	RightRepeatPiston <- '}$'
 
-	PlayerActionBlock <- 'PLAYER_ACTION' :_ ((Identifier / ^eps) :_?) Identifier :_ (Values / ^eps) :_? Terminator
-	IfPlayerBlock <- 'IF_PLAYER' :_ ((Identifier / ^eps) :_?) Identifier :_ (Values / ^eps) :_? Terminator
+	PlayerActionBlock <- 'PLAYER_ACTION' :_ ((Target / ^eps) :_?) Identifier :_ (Values / ^eps) :_? Terminator
+	GameActionBlock <- 'GAME_ACTION' :_ ((Target / ^eps) :_?) Identifier :_ (Values / ^eps) :_? Terminator
+	IfPlayerBlock <- 'IF_PLAYER' :_ ((Target / ^eps) :_?) Identifier :_ (Values / ^eps) :_? Terminator
 	IfVarBlock <- 'IF_VAR' :_ ^eps Identifier :_ (Values / ^eps) :_? Terminator
+	IfGameBlock <- 'IF_GAME' :_ ^eps Identifier :_ (Values / ^eps) :_? Terminator
 	SetVarBlock <- 'SET_VAR' :_ ^eps Identifier :_ (Values / ^eps) :_? Terminator
+	CallFuncBlock <- 'CALL_FUNCTION' :_ Identifier :_? Terminator
+	StartProcessBlock <- 'START_PROCESS' :_ Identifier :_ (Values / ^eps) :_? Terminator
+	ControlBlock <- 'CONTROL' :_ ^eps Identifier :_ (Values / ^eps) :_? Terminator
+	RepeatWhileBlock <- 'REPEAT' :_ 'While' :_ ('IF_PLAYER' / 'IF_ENTITY' / 'IF_VAR' / 'IF_GAME') :_ Identifier :_ (Values / ^eps) :_? Terminator
+	RepeatBlock <- 'REPEAT' :_ ^eps Identifier :_ (Values / ^eps) :_? Terminator
+	ElseBlock <- 'ELSE' :_? Terminator
 
+	Definition <- Identifier :_? '=' :_? Value :_? ';'
 
 	Values <- (:_? Value :_?)*
 
-	Value <- TxtValue / NumValue / LocValue / VarValue / GameValue / VecValue / SndValue / PotionValue / TagValue / ItemValue # / ParticleValue
+	ValuesPlus <- (:_? Value :_?)+
+
+	Value <- TxtValue / NumValue / LocValue / VarValue / GameValue / VecValue / SndValue / PotionValue / TagValue / ItemValue / Identifier # / ParticleValue
 	TxtValue <- 'txt' :_? String 
 	NumValue <- 'num' :_? String
 	LocValue <- 'loc' :_? '[' :_? Number :_ Number :_ Number (:_ Number :_ Number)? :_? ']' # x y z (pitch yaw)
@@ -44,9 +58,11 @@ Embyr:
 	_ <- ([ \n\t]+ / Comment)*
 	Comment <- '#' (!endOfLine .)*
 
-	Identifier <~ [a-zA-Z0-9_\-\+\*\/%=]+
+	Identifier <~ [a-zA-Z0-9_\-\+\*\/%=<>]+
 	Number <~ '-'? [0-9]+ ('.' [0-9]*)?
 	String <- NormalString / RawString
+
+	Target <- 'Selection' / 'Default' / 'Killer' / 'Damager' / 'Victim' / 'Shooter' / 'Projectile' / 'LastEntity' / 'AllPlayers'
 
 	RawString <~ backquote (!backquote .*) backquote
 	NormalString <- doublequote (EscapeSequence / CharSeq)* doublequote

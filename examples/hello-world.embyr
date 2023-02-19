@@ -1,2 +1,3 @@
 PLAYER_EVENT Join:
 	PLAYER_ACTION SendMessage txt"Hello, World!";
+

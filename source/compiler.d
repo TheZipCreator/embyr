@@ -55,11 +55,48 @@ private:
 string filename;
 string filetext;
 
+static immutable gameValues = [
+	// Statistical Values
+	"Current Health", "Maximum Health", "Absorption Health", "Food Level", "Food Saturation", "Food Exhaustion", "Attack Damage", "Attack Speed",
+	"Armor Points", "Armor Toughness", "Invulnerability Ticks", "Experience Level", "Experience Progress", "Fire Ticks", "Freeze Ticks", "Remaining Air",
+	"Fall Distance", "Held Slot", "Ping", "Steer Sideways Movement", "Steer Forward Movement",
+	// Locational Values
+	"Location", "Target Block Location", "Target Block Side", "Eye Location", "X-Coordinate", "Y-Coordinate", "Z-Coordinate", "Pitch", "Yaw",
+	"Spawn Location", "Velocity", "Direction",
+	// Item Values
+	"Main Hand Item", "Off Hand Item", "Armor Items", "Hotbar Items", "Inventory Items", "Cursor Item", "Inventory Menu Items", "Saddle Item", "Entity Item",
+	// Informational Values
+	"Name", "UUID", "Entity Type", "Open Inventory Title", "Potion Effects", "Vehicle", "Passengers", "Lead Holder", "Attached Leads",
+	// Event Values
+	"Event Block Location", "Event Block Side", "Event Damage", "Damage Event Cause", "Event Death Message", "Event Heal Amount", "Heal Event Cause",
+	"Event Power", "Event Command", "Event Command Arguments", "Event Item", "Event Hotbar Slot", "Event Clicked Slot Index", "Event Clicked Slot Item",
+	"Event Clicked Slot New Item", "Close Inventory Event Cause", "Inventory Event Click Type", "Fish Event Cause",
+	// Plot Values
+	"Player Count", "CPU Usage", "Server TPS", "Timestamp", "Selection Size", "Selection Size", "Selection Target Names", "Selection Target UUIDs"
+];
+
+struct Definitions {
+	ParseTree[string] definitions;
+
+	ParseTree opIndex(string k) {
+		if(k !in definitions)
+			throw new CompilerException("Unknown definition '"~k~"'.");
+		return definitions[k];
+	}
+
+	void opIndexAssign(ParseTree v, string k) {
+		if(k in definitions)
+			throw new CompilerException("Duplicate definition '"~k~"'.");
+		definitions[k] = v;
+	}
+}
+Definitions definitions;
+
 /// Find the position of of a given ParseTree
 FilePos pos(ParseTree pt) {
 	size_t line;
 	size_t col;
-	for(size_t i = pt.end; i > 0; i--) {
+	for(size_t i = pt.end-1; i > 0; i--) {
 		col++;
 		if(filetext[i] == '\n') {
 			col = 0;
@@ -136,6 +173,7 @@ Tuple!(JSONValue[], TagValue[]) parseValues(ParseTree pt) {
 		ret ~= o;
 	}
 	foreach(v; pt) {
+		start:
 		v = v[0];
 		final switch(v.name) {
 			case "Embyr.NumValue":
@@ -211,7 +249,9 @@ Tuple!(JSONValue[], TagValue[]) parseValues(ParseTree pt) {
 					if(!targets.canFind(target))
 						throw new CompilerException("Invalid target '"~target~"'.");
 				}
-				// TODO: make sure game value is valid
+				string name = parseString(v[0]);
+				if(!gameValues.canFind(name))
+					throw new CompilerException("Unknown game value '"~name~"'.");
 				addItem("g_val", [
 					"target": target,
 					"type": parseString(v[0])
@@ -227,6 +267,11 @@ Tuple!(JSONValue[], TagValue[]) parseValues(ParseTree pt) {
 			case "Embyr.TagValue": {
 				tags ~= TagValue(parseString(v[0]), parseString(v[1]));
 				break;
+			}
+			
+			case "Embyr.Identifier": {
+				v = definitions[v.matches[0]];
+				goto start; // I feel like there's a better way to do this, but this is simplest.
 			}
 		}
 	}
@@ -246,20 +291,38 @@ CodeBlock[] parseBlocks(ParseTree pt) {
 				res ~= new T(vals[0], vals[1], b[1].matches[0], target);
 			}
 			final switch(b.name) {
-				case "Embyr.PlayerActionBlock": {
+				case "Embyr.PlayerActionBlock":
 					add!PlayerAction();
 					break;
-				}
-				case "Embyr.IfPlayerBlock": {
+				case "Embyr.IfPlayerBlock":
 					add!IfPlayer();
 					break;
-				}
-				case "Embyr.IfVarBlock": {
+				case "Embyr.IfVarBlock":
 					add!IfVar();
 					break;
-				}
-				case "Embyr.SetVarBlock": {
+				case "Embyr.IfGameBlock":
+					add!IfVar();
+					break;
+				case "Embyr.SetVarBlock":
 					add!SetVar();
+					break;
+				case "Embyr.ControlBlock":
+					add!Control();
+					break;
+				case "Embyr.GameActionBlock":
+					add!GameAction();
+					break;
+				case "Embyr.RepeatBlock":
+					add!GameAction();
+					break;
+					// TODO: Repeat while
+				case "Embyr.CallFuncBlock": {
+					res ~= new CallFunction(b[0].matches[0]);
+					break;
+				}
+				case "Embyr.StartProcessBlock": {
+					auto vals = parseValues(b[1]);
+					res ~= new StartProcess(vals[0], vals[1], b[0].matches[0]);
 					break;
 				}
 				case "Embyr.LeftPiston": {
@@ -278,6 +341,11 @@ CodeBlock[] parseBlocks(ParseTree pt) {
 					res ~= new Piston(true, true);
 					break;
 				}
+
+				case "Embyr.Definition": {
+					definitions[b.matches[0]] = b[1];
+					break;
+				}
 			}
 		} catch(CompilerException e)
 			throw new CompilerException(e, pos(b));
@@ -290,15 +358,35 @@ public Declaration[] compile(string filename_, string filetext_, ParseTree pt, b
 	filename = filename_;
 	filetext = filetext_;
 	addtags = addtags_;
+	definitions = Definitions();
 	Declaration[] decls;
 	pt = pt[0]; // get the Embyr.Program
 	foreach(decl; pt) {
 		decl = decl[0];
 		try {
 			final switch(decl.name) {
-				case "Embyr.PlayerEventDecl":
-					decls ~= new PlayerEvent(parseBlocks(decl[1]), decl[0].matches[0]);
+				case "Embyr.PlayerEventDecl": {
+					auto blocks = decl.children.length > 1 ? parseBlocks(decl[1]) : [];
+					decls ~= new PlayerEvent(blocks, decl[0].matches[0]);
 					break;
+				}
+				case "Embyr.FunctionDecl": {
+					auto blocks = decl.children.length > 2 ? parseBlocks(decl[2]) : [];
+					auto vals = parseValues(decl[1]);
+					decls ~= new Function(blocks, vals[0], vals[1], decl[0].matches[0]);
+					break;
+				}
+				case "Embyr.ProcessDecl": {
+					auto blocks = decl.children.length > 2 ? parseBlocks(decl[2]) : [];
+					auto vals = parseValues(decl[1]);
+					decls ~= new Process(blocks, vals[0], vals[1], decl[0].matches[0]);
+					break;
+				}
+
+				case "Embyr.Definition": {
+					definitions[decl.matches[0]] = decl[1];
+					break;
+				}
 			}
 		} catch(CompilerException e)
 			throw new CompilerException(e, decl.pos);

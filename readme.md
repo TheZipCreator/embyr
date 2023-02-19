@@ -16,7 +16,7 @@ PLAYER_EVENT Join:
 ```
 There's a few things to note here. The first one is declarations. Declarations are the generic name that Embyr gives to things such as Player Events, Functions, or Processes. This file contains a single declaration (`PLAYER_EVENT Join:`) but a file may contain as many declarations as necessary. Each declaration is converted into 1 or more code templates.
 Also note the `txt` prefix before `"Hello, World!"`. This tells the compiler that this is *text*, and not another datatype. This is important, because in DiamondFire, things such as numbers may also contain arbitrary text (this is why you can type things like `%math(2+3)` into a number). As such, the datatype is almost always prefixed before the value.
-Another thing to look at is the semicolon (`;`) after the player action. All codeblocks must end with a semicolon, or a brace ('{', '}' for pistons, '<', '>' for sticky pistons). This is so you can wrap code blocks over multiple lines, which may be useful for setting up things like inventory menus.
+Another thing to look at is the semicolon (`;`) after the player action. All codeblocks must end with a semicolon, or a brace (`{`, `}` for pistons, `${`, `}$` for sticky pistons). This is so you can wrap code blocks over multiple lines, which may be useful for setting up things like inventory menus.
 ### Item Giver
 This is a program that assumes the existence of signs at some given coordinates. It then will detect which sign the player clicked on, and give an item accordingly.
 ```
@@ -54,3 +54,28 @@ This shows many new things. The first thing to look at is tags. In the previous 
 Another new thing in this example is targets. Targets are specified as identifiers and placed before the action. Targets are only valid in some contexts. For example, a target is *invalid* in `SET_VAR`.
 Another thing of note is the variable literals, notice the `s` after it? That `s` is a flag that makes it a *saved* variable. There a 3 variable flags: `g` for global, `s` for saved, and `l` for local. They must immediately succeed a variable string.
 Finally, you might notice the `\&` in variables. This is another way of typing the section symbol, which MC uses for colors. It is equivalent to just typing `&` on the DF server.
+### Definitions
+A definition is effectively a shorthand for a value constant. See below:
+```
+stick = item{id:"minecraft:stick",Count:1b};
+
+PLAYER_EVENT Join:
+	PLAYER_ACTION GiveItems stick;
+
+PLAYER_EVENT RightClick:
+	IF_PLAYER IsHolding stick {
+		PLAYER_ACTION SendMessage txt"You clicked the stick!";
+	}
+```
+This creates a definition for `stick`, and sets it to the item `item{id:"minecraft:stick",Count:1b}`. Now, any time after this definition, the identifier `stick` will be replaced by `item{id:"minecraft:stick",Count:1b}`. This is useful especially for commonly used items, which are rather verbose in NBT syntax.
+
+## Things that still need to be implemented
+### Code Blocks
+- Entity Event
+- Entity Action
+- If Entity
+- Select Object
+- NOT Arrow
+### Values
+- Particles (and also all related actions)
+

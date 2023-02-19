@@ -32,18 +32,113 @@ class Piston : CodeBlock {
 	}
 }
 
+class CallFunction : CodeBlock {
+	string func;
+
+	this(string func) {
+		this.func = func;
+	}
+
+	JSONValue toJSON() {
+		auto val = JSONValue([
+			"id": "block",
+			"block": "call_func",
+			"data": func
+		]);
+		val["args"] = ["items": emptyArray];
+		return val;
+	}
+}
+
+class StartProcess : CodeBlock {
+	string process;
+
+	static tags = [
+		Tag("Local Variables", ["Don't copy", "Copy", "Share"]),
+		Tag("Target Mode", ["With current targets", "With current selection", "With no targets", "For each in selection"])
+	];
+
+	JSONValue[] items;
+
+	this(JSONValue[] items, TagValue[] tagvs, string process) {
+		this.process = process;
+		this.items = items;
+		validateTags(this, "start process", "start_process", "dynamic", tagvs, tags);
+	}
+
+	JSONValue toJSON() {
+		auto val = JSONValue([
+			"block": "start_process",
+			"data": process,
+			"id": "block"
+		]);
+		val["args"] = ["items": items];
+		return val;
+	}
+}
+
+// TODO: move this somewhere else
+/// Checks and validates tags
+void validateTags(T)(T bl, string name, string block, string action, TagValue[] tagvs, Tag[] tags) {
+	bool[string] found; // tags that have been found 
+	// find largest slot (important for detecting value/tag overlap)
+	int slot = 0;
+	foreach(i; bl.items) {
+		int s = cast(int)(i["slot"].integer);
+		if(s > slot)
+			slot = s;
+	}
+	// make sure all tags are present and valid
+	foreach(t; tagvs) {
+		if(!tags.canFind(t.name))
+			throw new CompilerException("Invalid tag '"~t.name~"' for "~name~".");
+		if(t.name in found)
+			throw new CompilerException("Duplicate tag '"~t.name~"'.");
+		auto opts = tags.find!(a => a.name == t.name)[0].options;
+		if(!opts.canFind(t.option))
+			throw new CompilerException("Invalid option '"~t.option~"' for tag '"~t.name~"'. Valid options are:\n"~opts.join("\n"));
+		found[t.name] = true;
+	}
+	foreach(tag; tags) 
+		if(tag.name !in found) { 
+			if(!addtags) 
+				throw new CompilerException("Missing tag '"~tag.name~"'. Add argument --addtags to automatically generate missing tags. Valid options for this tag are:\n"~tag.options.join("\n"));
+			tagvs ~= TagValue(tag.name, tag.options[0]);
+		}
+	// add tags to items
+	foreach(t; tagvs) {
+		auto o = emptyObject;
+		int s = cast(int)(tags.countUntil!(a => a.name == t.name)+27-tags.length);
+		if(slot >= s)
+			throw new CompilerException("Overlapping values and tags.");
+		auto item = emptyObject;
+		item["data"] = [
+			"block": block,
+			"action": action,
+			"tag": t.name,
+			"option": t.option
+		];
+		item["id"] = "bl_tag";
+		o["item"] = item;
+		o["slot"] = s;
+		bl.items ~= o;
+	}
+
+}
+
+/// Represents a tag
+struct Tag {
+	string name;
+	string[] options;
+	bool opEquals(string s) {
+		return s == name;
+	}
+}
+
 /// Represents actions and setvars
 abstract class Action : CodeBlock {	
 	JSONValue[] items;
 	
-	/// Represents a tag
-	struct Tag {
-		string name;
-		string[] options;
-		bool opEquals(string s) {
-			return s == name;
-		}
-	}
 
 	/// Possible actions. Each key corresponds with a map of each tag. 
 	Tag[][string] actions() { return null; }
@@ -62,49 +157,7 @@ abstract class Action : CodeBlock {
 			throw new CompilerException("Invalid target '"~target~"'.");
 		this.target = target;
 		auto tags = actions[action];
-		bool[string] found; // tags that have been found 
-	 	// find largest slot (important for detecting value/tag overlap)
-		int slot = 0;
-		foreach(i; items) {
-			int s = cast(int)(i["slot"].integer);
-			if(s > slot)
-				slot = s;
-		}
-		// make sure all tags are present and valid
-		foreach(t; tagvs) {
-			if(!tags.canFind(t.name))
-				throw new CompilerException("Invalid tag '"~t.name~"' for action '"~action~"'.");
-			if(t.name in found)
-				throw new CompilerException("Duplicate tag '"~t.name~"'.");
-			auto opts = tags.find!(a => a.name == t.name)[0].options;
-			if(!opts.canFind(t.option))
-				throw new CompilerException("Invalid option '"~t.option~"' for tag '"~t.name~"'. Valid options are:\n"~opts.join("\n"));
-			found[t.name] = true;
-		}
-		foreach(tag; tags) 
-			if(tag.name !in found) { 
-				if(!addtags) 
-					throw new CompilerException("Missing tag '"~tag.name~"'. Add argument --addtags to automatically generate missing tags. Valid options for this tag are:\n"~tag.options.join("\n"));
-				tagvs ~= TagValue(tag.name, tag.options[0]);
-			}
-		// add tags to items
-		foreach(t; tagvs) {
-			auto o = emptyObject;
-			int s = cast(int)(tags.countUntil!(a => a.name == t.name)+27-tags.length);
-			if(slot >= s)
-				throw new CompilerException("Overlapping values and tags.");
-			auto item = emptyObject;
-			item["data"] = [
-				"block": block,
-				"action": action,
-				"tag": t.name,
-				"option": t.option
-			];
-			item["id"] = "bl_tag";
-			o["item"] = item;
-			o["slot"] = s;
-			this.items ~= o;
-		}
+		validateTags(this, "action '"~action~"'", block, action, tagvs, tags);
 	}
 
 	JSONValue toJSON() {
@@ -194,6 +247,47 @@ class PlayerAction : Action {
 
 	override string block() {
 		return "player_action";
+	}
+}
+
+class GameAction : Action {
+	static Tag[][string] _actions;
+
+	static this() {
+		auto ignoreCase = Tag("IgnoreCase", ["False", "True"]);
+		_actions = [
+			// Entity Spawning
+			"SpawnMob": [], "SpawnItem": [Tag("Apply Item Motion", ["True", "False"])], "SpawnVehicle": [], "SpawnExpOrb": [], "Explosion": [], "SpawnTNT": [],
+			"SpawnFangs": [], "Firework": [Tag("Instant", ["False", "True"]), Tag("Movement", ["Upwards", "Directional"])], "LaunchProj": [], "Lightning": [],
+			"SpawnPotionCloud": [], "FallingBlock": [Tag("Reform on Impact", ["True", "False"]), Tag("Hurt Hit Entities", ["False", "True"])],
+			"SpawnArmorStand": [Tag("Visibility", ["Visible", "Visible (No hitbox)", "Invisible", "Invisible (No hitbox)"])], 
+			"SpawnCrystal": [Tag("Show Bottom", ["True", "False"])], "SpawnEnderEye": [Tag("End of Lifespan", ["Random", "Drop item", "Shatter"])],
+			"ShulkerBullet": [],
+			// Block Manipulation
+			"SetBlock": [], "SetRegion": [], "CloneRegion": [Tag("Ignore Air", ["False", "True"]), Tag("Clone Block Entities", ["True", "False"])],
+			"BreakBlock": [], "SetBlockData": [Tag("Overwrite Existing Data", ["False", "True"])], "TickBlock": [], 
+			"BoneMeal": [Tag("Show Particles", ["True", "False"])], "SetBlockGrowth": [Tag("Growth Unit", ["Growth Stage Number", "Growth Percentage"])],
+			"GenerateTree": [Tag("Tree Type", ["Oak Tree", "Big Oak Tree", "Swamp Tree", "Spruce Tree", "Slightly Taller Spruce Tree", "Big Spruce Tree", "Birch Tree", "Tall Birch Tree", "Jungle Tree", "Big Jungle Tree", "Jungle Bush", "Acacia Tree", "Dark Oak Tree", "Mangrove Tree", "Tall Mangrove Tree","Azalea Tree", "Red Mushroom", "Brown Mushroom", "Crimson Fungus", "Warped Fungus", "Chorus Plant"])],
+			"FillContainer": [], "SetContainer": [], "SetItemInSlot": [], "ReplaceItems": [], "RemoveItems": [], "ClearItems": [], "ClearContainer": [],
+			"SetContainerName": [], "LockContainer": [], "ChangeSign": [],
+			"SignColor": [Tag("Text Color", ["Black", "White", "Orange", "Magenta", "Light blue", "Yellow", "Lime", "Pink", "Gray", "Light gray", "Cyan", "Purple", "Blue", "Brown", "Green", "Red"]), Tag("Glowing", ["Disable", "Enable"])],
+			"SetHead": [], "SetFurnaceSpeed": [], "SetCampfireItem": [Tag("Campfire Slot", ["1", "2", "3", "4"])], "SetLecternBook": [],
+			// Event Manipulation
+			"CancelEvent": [], "UncancelEvent": [], "SetEventDamage": [], "SetEventHeal": [], "SetEventXP": [], "SetEventProj": [], "SetEventSound": [],
+			// Settings
+			"BlockDropsOn": [], "BlockDropsOff": [], 
+			"WebRequest": [Tag("Request Method", ["Post", "Get", "Put", "Delete"]), Tag("Content Type", ["text/plain", "application/json"])], "DiscordWebhook": []
+		];
+	}
+
+	override Tag[][string] actions() { return _actions; }
+
+	this(JSONValue[] items, TagValue[] tagvs, string action, string target) {
+		super(items, tagvs, action, target);
+	}
+
+	override string block() {
+		return "game_action";
 	}
 }
 
@@ -296,12 +390,46 @@ class SetVar : Action {
 			"ShiftRotation": [Tag("Rotation Axis", ["Pitch", "Yaw"])], "FaceLocation": [Tag("Face Direction", ["Toward location", "Away from location"])],
 			"AlignLoc": [Tag("Rotation", ["Keep rotation", "Remove rotation"]), Tag("Coordinates", ["All coordinates", "X and Z", "Only Y"]), Tag("Alignment Mode", ["Block center", "Lower block corner"])],
 			"Distance": [Tag("Distance Type", ["Distance 3D (X/Y/Z)", "Distance 2D (X/Z)", "Altitude (Y)"])], "GetCenterLoc": [], "RandomLoc": [],
-			// TODO: Item Manipulation
+			// Item Manipulation
+			"GetItemType": [Tag("Return Value Type", ["Item ID (golden_apple)", "Item Name (Golden Apple)", "Item"])], "SetItemType": [], "GetItemName": [],
+			"SetItemName": [], "GetItemLore": [], "GetItemLoreLine": [], "SetItemLore": [], "GetItemAmount": [], "SetItemAmount": [], "GetMaxItemAmount": [],
+			"GetItemDura": [Tag("Durability Type", ["Get Damage", "Get Damage Percentage", "Get Remaining", "Get Remaining Percentage", "Get Maximum"])],
+			"SetItemDura": [Tag("Durability Type", ["Set Damage", "Set Damage Percentage", "Set Remaining", "Set Remaining Percentage"])],
+			"SetBreakability": [Tag("Breakability", ["Unbreakable", "Breakable"])], "GetItemEnchants": [], "SetItemEnchants": [], "AddItemEnchant": [],
+			"RemItemEnchant": [], "GetHeadOwner": [Tag("Text Value", ["Owner Name", "Owner UUID"])], "SetHeadTexture": [], "GetBookText": [], "SetBooKText": [],
+			"GetItemTag": [], "SetItemTag": [], "GetAllItemTags": [], "RemoveItemTag": [], "SetModelData": [], "GetItemEffects": [], "SetItemEffects": [],
+			"SetItemFlags": [Tag("Hide Color", ["No Change", "True", "False"]),Tag("Hide Enchantments", ["No Change", "True", "False"]),Tag("Hide Attributes", ["No Change", "True", "False"]),Tag("Hide Unbreakable", ["No Change", "True", "False"]),Tag("Hide Can Destroy", ["No Change", "True", "False"]),Tag("Hide Can Place On", ["No Change", "True", "False"]),Tag("Hide Potion Effects", ["No Change", "True", "False"])],
+			"SetCanPlaceOn": [], "SetCanDestroy": [], "GetItemRarity": [], "GetLodestoneLoc": [], 
+			"SetLodestoneLoc": [Tag("Require Lodestone at Location", ["False", "True"])], "GetItemColor": [], "SetItemColor": [],
+			"GetItemAttribute": [Tag("Attribute", ["Armor", "Armor toughness", "Attack damage", "Attack speed", "Maximum health", "Knockback resistance", "Movement speed", "Follow range"]), Tag("Active Equipment Slot", ["Any", "Main hand", "Off hand", "Head", "Body", "Legs", "Feet"])],
+			"AddItemAttribute": [Tag("Attribute", ["Armor", "Armor toughness", "Attack damage", "Attack speed", "Maximum health", "Knockback resistance", "Movement speed", "Follow range"]), Tag("Operation", ["Add number", "Add percentage to base", "Multiply modifier by percentage"]), Tag("Active Equipment Slot", ["Main hand", "Any", "Off hand", "Head", "Body", "Legs", "Feet"])],
+			"SetMapTexture": [],
 			// List Manipulation
 			"CreateList": [], "AppendValue": [], "AppendList": [], "GetListValue": [], "SetListValue": [], 
 			"GetValueIndex": [Tag("Search Order", ["Ascending (first index)", "Descending (last index)"])], "InsertListValue": [], "RemoveListValue": [],
 			"RemoveListIndex": [], "TrimList": [], "SortList": [Tag("Sort Order", ["Ascending", "Descending"])], "ReverseList": [], "RandomizeList": [],
-			// TODO: all the other setvars
+			// Dictionary Manipulation
+			"CreateDict": [], "SetDictValue": [], "GetDictValue": [], "GetDictSize": [], "RemoveDictEntry": [], "GetDictKeys": [], "ClearDict": [],
+			"GetDictValues": [], "AppendDict": [], 
+			"SortDict": [Tag("Sorting Type", ["Sort by Key", "Sort by Value"]), Tag("Sorting Order", ["Ascending", "Descending"])],
+			// TODO: Particle Manipulation
+			// World Actions
+			"GetBlockType": [Tag("Return Value Type", ["Block ID (oak_log)", "Block name (Oak Log)", "Item"])], "GetBlockData": [],
+			"GetAllBlockData": [Tag("Hide Default", ["True", "False"])], "GetBlockGrowth": [Tag("Growth Unit", ["Growth stage number", "Growth percentage"])],
+			"GetBlockPower": [], "GetLight": [Tag("Light Type", ["Combined light", "Sky light", "Block light"])], 
+			"GetSignText": [Tag("Sign Line", ["1", "2", "3", "4", "All lines"])], "GetContainerName": [], "ContainerLock": [],
+			"GetContainerItems": [Tag("Ignore Empty Slots", ["False", "True"])], "GetLecternBook": [], "GetLecternPage": [],
+			"Raycast": [Tag("Entity Collision", ["False", "True"]), Tag("Block Collision", ["All blocks", "Non-fluid blocks", "Solid blocks", "None"])],
+			// Miscellaneous Actions
+			"GetPotionType": [], "SetPotionType": [], "GetPotionAmp": [], "SetPotionAmp": [], "GetPotionDur": [], "SetPotionDur": [], "GetSoundType": [],
+			"SetSoundType": [], "SetSoundVariant": [], "GetSoundPitch": [Tag("Return Value Type", ["Pitch (number)", "Note (text)"])], "SetSoundPitch": [],
+			"GetSoundVolume": [], "SetSoundVolume": [], "RGBColor": [], "HSBColor": [], "HSLColor": [],
+			"GetColorChannels": [Tag("Color Channels", ["RGB", "HSB", "HSL"])],
+			// Vector Manipulation
+			"Vector": [], "VectorBetween": [], "GetVectorComp": [Tag("Component", ["X", "Y", "Z"])], "SetVectorComp": [Tag("Component", ["X", "Y", "Z"])],
+			"GetVectorLength": [Tag("Length Type", ["Length", "Length Squared"])], "SetVectorLength": [], "MultiplyVector": [], "AddVectors": [],
+			"SubtractVectors": [], "AlignVectors": [], "RotateAroundAxis": [Tag("Axis", ["X", "Y", "Z"]), Tag("Angle Units", ["Degrees", "Radians"])],
+			"ReflectVector": [], "CrossProduct": [], "DotProduct": [], "DirectionName": []
 		];
 	}
 
@@ -313,5 +441,73 @@ class SetVar : Action {
 
 	override string block() {
 		return "set_var";
+	}
+}
+
+class Control : Action {
+	static Tag[][string] _actions;
+
+	static this() {
+		_actions = [
+			"Wait": [Tag("Time Unit", ["Ticks", "Seconds", "Minutes"])], "Return": [], "End": [], "Skip": [], "StopRepeat": []
+		];
+	}
+
+	override Tag[][string] actions() { return _actions; }
+
+	this(JSONValue[] items, TagValue[] tagvs, string action, string target) {
+		super(items, tagvs, action, target);
+	}
+
+	override string block() {
+		return "control";
+	}
+}
+
+class Repeat : Action {
+	static Tag[][string] _actions;
+
+	static this() {
+		_actions = [
+			"Forever": [], "Multiple": [], "Range": [], "ForEach": [Tag("Allow List Changes", ["True", "False (copy list)"])], "ForEachEntry": [],
+			"Grid": [], 
+			"Adjacent": [Tag("Change Location Rotation", ["False", "True"]), Tag("Include Origin Block", ["False", "True"]), Tag("Pattern", ["Adjacent (6 blocks)", "Cardinal (4 blocks)", "Square (8 blocks)", "Cube (26 blocks)"])],
+			"Path": [Tag("Rotate Location", ["False", "True"])], "Sphere": [Tag("Point Locations Inwards", ["False", "True"])]
+		];
+	}
+
+	override Tag[][string] actions() { return _actions; }
+
+	this(JSONValue[] items, TagValue[] tagvs, string action, string target) {
+		super(items, tagvs, action, target);
+	}
+
+	override string block() {
+		return "repeat";
+	}
+}
+
+class IfGame : Action {
+	static Tag[][string] _actions;
+
+	static this() {
+		_actions = [
+			"BlockEquals": [], "BlockPowered": [Tag("Redstone Power Mode", ["Direct power", "Indirect power"])], "ContainerHas": [], "ContainerHasAll": [],
+			"HasRoomForItem": [Tag("Check Mode", ["Has Room for Any Item", "Has Room for All Items"])],
+			"SignHasTxt": [Tag("Check Mode", ["Contains", "Equals"]), Tag("Sign Line", ["1", "2", "3", "4", "All lines"])], "HasPlayer": [], "EventBlockEquals": [],
+			"EventItemEquals": [Tag("Comparison Mode", ["Exactly equals", "Ignore stack size/durability", "Material only"])],
+			"CommandEquals": [Tag("Ignore Case", ["True", "False"]), Tag("Check Mode", ["Check entire command", "Check beginning"])],
+			"CmdArgEquals": [Tag("Ignore Case", ["True", "False"])], "AttackIsCrit": [], "EventCancelled": []
+		];
+	}
+
+	override Tag[][string] actions() { return _actions; }
+
+	this(JSONValue[] items, TagValue[] tagvs, string action, string target) {
+		super(items, tagvs, action, target);
+	}
+
+	override string block() {
+		return "if_game";
 	}
 }
