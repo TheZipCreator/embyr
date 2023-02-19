@@ -75,7 +75,6 @@ This creates a definition for `stick`, and sets it to the item `item{id:"minecra
 - Entity Action
 - If Entity
 - Select Object
-- NOT Arrow
 ### Values
 - Particles (and also all related actions)
 ## Syntax Highlighting

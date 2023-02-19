@@ -22,11 +22,11 @@ Embyr:
 	LeftRepeatPiston <-  '${'
 	RightRepeatPiston <- '}$'
 
-	PlayerActionBlock <- 'PLAYER_ACTION' :_ ((Target / ^eps) :_?) Identifier :_ (Values / ^eps) :_? Terminator
-	GameActionBlock <- 'GAME_ACTION' :_ ((Target / ^eps) :_?) Identifier :_ (Values / ^eps) :_? Terminator
-	IfPlayerBlock <- 'IF_PLAYER' :_ ((Target / ^eps) :_?) Identifier :_ (Values / ^eps) :_? Terminator
-	IfVarBlock <- 'IF_VAR' :_ ^eps Identifier :_ (Values / ^eps) :_? Terminator
-	IfGameBlock <- 'IF_GAME' :_ ^eps Identifier :_ (Values / ^eps) :_? Terminator
+	PlayerActionBlock <- 'PLAYER_ACTION' :_ (Target :_ / ^eps) Identifier :_ (Values / ^eps) :_? Terminator
+	GameActionBlock <- 'GAME_ACTION' :_ (Target ;_ / ^eps) Identifier :_ (Values / ^eps) :_? Terminator
+	IfPlayerBlock <- 'IF_PLAYER' :_ (Target :_ / ^eps) (Not :_ / ^eps) Identifier :_ (Values / ^eps) :_? Terminator
+	IfVarBlock <- 'IF_VAR' :_ ^eps (Not :_ / ^eps) Identifier :_ (Values / ^eps) :_? Terminator
+	IfGameBlock <- 'IF_GAME' :_ ^eps (Not :_ / ^eps) Identifier :_ (Values / ^eps) :_? Terminator
 	SetVarBlock <- 'SET_VAR' :_ ^eps Identifier :_ (Values / ^eps) :_? Terminator
 	CallFuncBlock <- 'CALL_FUNCTION' :_ Identifier :_? Terminator
 	StartProcessBlock <- 'START_PROCESS' :_ Identifier :_ (Values / ^eps) :_? Terminator
@@ -53,8 +53,10 @@ Embyr:
 	ItemValue <- 'item' :_? ~SNBTCompound
 
 # not using the < operator because sometimes I do want whitespace in places
-	_ <- ([ \n\t]+ / Comment)*
+	_ <- ([ \r\n\t]+ / Comment)*
 	Comment <- '#' (!endOfLine .)*
+
+	Not <- 'NOT'
 
 	Identifier <~ [a-zA-Z0-9_\-\+\*\/%=<>]+
 	Number <~ '-'? [0-9]+ ('.' [0-9]*)?

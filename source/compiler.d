@@ -283,37 +283,44 @@ CodeBlock[] parseBlocks(ParseTree pt) {
 	foreach(b; pt) {
 		b = b[0];
 		try {
-			void add(T)() {
+			void addAction(T)() {
 				auto vals = parseValues(b[2]);
 				string target = "";
 				if(b[0].name != "eps")
 					target = b[0].matches[0];
 				res ~= new T(vals[0], vals[1], b[1].matches[0], target);
 			}
+			void addIf(T)() {
+				auto vals = parseValues(b[3]);
+				string target = "";
+				if(b[0].name != "eps")
+					target = b[0].matches[0];
+				res ~= new T(vals[0], vals[1], b[2].matches[0], target, b[1].name != "eps");
+			}
 			final switch(b.name) {
 				case "Embyr.PlayerActionBlock":
-					add!PlayerAction();
+					addAction!PlayerAction();
 					break;
 				case "Embyr.IfPlayerBlock":
-					add!IfPlayer();
+					addIf!IfPlayer();
 					break;
 				case "Embyr.IfVarBlock":
-					add!IfVar();
+					addIf!IfVar();
 					break;
 				case "Embyr.IfGameBlock":
-					add!IfVar();
+					addIf!IfVar();
 					break;
 				case "Embyr.SetVarBlock":
-					add!SetVar();
+					addAction!SetVar();
 					break;
 				case "Embyr.ControlBlock":
-					add!Control();
+					addAction!Control();
 					break;
 				case "Embyr.GameActionBlock":
-					add!GameAction();
+					addAction!GameAction();
 					break;
 				case "Embyr.RepeatBlock":
-					add!GameAction();
+					addAction!GameAction();
 					break;
 					// TODO: Repeat while
 				case "Embyr.ElseBlock":

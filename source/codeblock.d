@@ -301,7 +301,23 @@ class GameAction : Action {
 	}
 }
 
-class IfPlayer : Action {
+abstract class If : Action {
+	bool not;
+
+	override JSONValue toJSON() {
+		auto json = super.toJSON();
+		if(not)
+			json["inverted"] = "NOT";
+		return json;
+	}
+	
+	this(JSONValue[] items, TagValue[] tagvs, string action, string target, bool not) {
+		super(items, tagvs, action, target);
+		this.not = not;
+	}
+}
+
+class IfPlayer : If {
 	static Tag[][string] _actions;
 
 	static this() {
@@ -327,8 +343,8 @@ class IfPlayer : Action {
 
 	override Tag[][string] actions() { return _actions; }
 
-	this(JSONValue[] items, TagValue[] tagvs, string action, string target) {
-		super(items, tagvs, action, target);
+	this(JSONValue[] items, TagValue[] tagvs, string action, string target, bool not) {
+		super(items, tagvs, action, target, not);
 	}
 
 	override string block() {
@@ -336,7 +352,7 @@ class IfPlayer : Action {
 	}
 }
 
-class IfVar : Action {
+class IfVar : If {
 	static Tag[][string] _actions;
 
 	static this() {
@@ -353,8 +369,8 @@ class IfVar : Action {
 
 	override Tag[][string] actions() { return _actions; }
 
-	this(JSONValue[] items, TagValue[] tagvs, string action, string target) {
-		super(items, tagvs, action, target);
+	this(JSONValue[] items, TagValue[] tagvs, string action, string target, bool not) {
+		super(items, tagvs, action, target, not);
 	}
 
 	override string block() {
@@ -497,7 +513,7 @@ class Repeat : Action {
 	}
 }
 
-class IfGame : Action {
+class IfGame : If {
 	static Tag[][string] _actions;
 
 	static this() {
@@ -513,8 +529,8 @@ class IfGame : Action {
 
 	override Tag[][string] actions() { return _actions; }
 
-	this(JSONValue[] items, TagValue[] tagvs, string action, string target) {
-		super(items, tagvs, action, target);
+	this(JSONValue[] items, TagValue[] tagvs, string action, string target, bool not) {
+		super(items, tagvs, action, target, not);
 	}
 
 	override string block() {
