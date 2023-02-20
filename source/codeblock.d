@@ -719,7 +719,66 @@ class SubAction : CodeBlock {
 		this.subIf = subIf;
 		this.items = items;
 		this.not = not;
-		validateTags(this, "block", block, subAction, tagvs, actions[subAction]); 
+		validateTags(this, "block", block, subAction, tagvs, actions[subAction]);
+		// fix subAction (this code sucks FIXME)
+		// these are ones that aren't even ambiguous but are still flagged for some reason??
+		static immutable string[] specialCases = [
+			"BlockEquals", "ItemEquals"
+		]; 
+		if(() {
+			if(specialCases.canFind(subAction))
+				return true;
+			string[] toCombine;
+			final switch(subIf) {
+				case "IF_ENTITY":
+					toCombine = ["IF_PLAYER", "IF_VAR", "IF_GAME"];
+					break;
+				case "IF_PLAYER":
+					toCombine = ["IF_ENTITY", "IF_VAR", "IF_GAME"];
+					break;
+				case "IF_VAR":
+					toCombine = ["IF_PLAYER", "IF_ENTITY", "IF_GAME"];
+					break;
+				case "IF_GAME":
+					toCombine = ["IF_PLAYER", "IF_VAR", "IF_ENTITY"];
+					break;
+			}
+			Tag[][string] combined;
+			foreach(s; toCombine) {
+				Tag[][string] curr;
+				final switch(s) {
+					case "IF_PLAYER":
+						curr = IfPlayer._actions;
+						break;
+					case "IF_ENTITY":
+						curr = IfEntity._actions;
+						break;
+					case "IF_VAR":
+						curr = IfVar._actions;
+						break;
+					case "IF_GAME":
+						curr = IfGame._actions;
+						break;
+				}
+				foreach(k, v; curr)
+					combined[k] = v;
+			}
+			return cast(bool)(subAction in combined);
+		}) {
+			final switch(subIf) {
+				case "IF_GAME":
+					subAction = "G"~subAction;
+					break;
+				case "IF_ENTITY":
+					subAction = "E"~subAction;
+					break;
+				case "IF_VAR":
+					subAction = "V"~subAction;
+					break;
+				case "IF_PLAYER":
+					subAction = "P"~subAction;
+			}
+		}
 	}
 
 	JSONValue toJSON() {
