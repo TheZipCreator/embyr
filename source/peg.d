@@ -33,15 +33,15 @@ Embyr:
 	IfVarBlock <- 'IF_VAR' :_ ^eps (Not :_ / ^eps) Identifier :_ (Values / ^eps) :_? Terminator
 	IfGameBlock <- 'IF_GAME' :_ ^eps (Not :_ / ^eps) Identifier :_ (Values / ^eps) :_? Terminator
 	SetVarBlock <- 'SET_VAR' :_ ^eps Identifier :_ (Values / ^eps) :_? Terminator
-	SelectEntitiesCondBlock <- 'SELECT_OBJECT' :_ 'EntitiesCond' :_ SECBI :_ Identifier :_ (Values / ^eps) :_? Terminator
+	SelectEntitiesCondBlock <- 'SELECT_OBJECT' :_ 'EntitiesCond' :_  SECBI :_ (Not :_ / ^eps) Identifier :_ (Values / ^eps) :_? Terminator
 	SECBI <- 'IF_ENTITY' / 'IF_VAR' / 'IF_GAME'
-	SelectPlayersCondBlock <- 'SELECT_OBJECT' :_ 'PlayersCond' :_ SPCBI :_ Identifier :_ (Values / ^eps) :_? Terminator
+	SelectPlayersCondBlock <- 'SELECT_OBJECT' :_ 'PlayersCond' :_ SPCBI :_ (Not :_ / ^eps) Identifier :_ (Values / ^eps) :_? Terminator
 	SPCBI <- 'IF_PLAYER' / 'IF_VAR' / 'IF_GAME'
 	SelectObjectBlock <- 'SELECT_OBJECT' :_ ^eps Identifier :_ (Values / ^eps) :_? Terminator
 	CallFuncBlock <- 'CALL_FUNCTION' :_ Identifier :_? Terminator
 	StartProcessBlock <- 'START_PROCESS' :_ Identifier :_ (Values / ^eps) :_? Terminator
 	ControlBlock <- 'CONTROL' :_ ^eps Identifier :_ (Values / ^eps) :_? Terminator
-	RepeatWhileBlock <- 'REPEAT' :_ 'While' :_ RWI :_ Identifier :_ (Values / ^eps) :_? Terminator
+	RepeatWhileBlock <- 'REPEAT' :_ 'While' :_ RWI :_ (Not :_ / ^eps) Identifier :_ (Values / ^eps) :_? Terminator
 	RWI <- 'IF_PLAYER' / 'IF_ENTITY' / 'IF_VAR' / 'IF_GAME'
 	RepeatBlock <- 'REPEAT' :_ ^eps Identifier :_ (Values / ^eps) :_? Terminator
 	ElseBlock <- 'ELSE' :_? Terminator

@@ -292,8 +292,8 @@ CodeBlock[] parseBlocks(ParseTree pt) {
 			}
 			void addSubAction(string block, string action) {
 				auto subIf = b[0].matches[0];
-				auto vals = parseValues(b[2]);
-				res ~= new SubAction(vals[0], vals[1], block, action, b[1].matches[0], subIf);
+				auto vals = parseValues(b[3]);
+				res ~= new SubAction(vals[0], vals[1], block, action, b[2].matches[0], subIf, b[1].name != "eps");
 			}
 			void addIf(T : If)() {
 				auto vals = parseValues(b[3]);

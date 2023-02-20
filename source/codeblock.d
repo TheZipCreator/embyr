@@ -696,6 +696,7 @@ class SubAction : CodeBlock {
 	string subAction;
 	string action;
 	string subIf;
+	bool not;
 	JSONValue[] items;
 	
 	Tag[][string] actions() {
@@ -711,12 +712,13 @@ class SubAction : CodeBlock {
 		}
 	}
 
-	this(JSONValue[] items, TagValue[] tagvs, string block, string action, string subAction, string subIf) {
+	this(JSONValue[] items, TagValue[] tagvs, string block, string action, string subAction, string subIf, bool not) {
 		this.block = block;
 		this.action = action;
 		this.subAction = subAction;
 		this.subIf = subIf;
 		this.items = items;
+		this.not = not;
 		validateTags(this, "block", block, subAction, tagvs, actions[subAction]); 
 	}
 
@@ -728,6 +730,8 @@ class SubAction : CodeBlock {
 			"subAction": subAction
 		]);
 		v["args"] = ["items": items];
+		if(not)
+			v["inverted"] = "NOT";
 		return v;
 	}
 
