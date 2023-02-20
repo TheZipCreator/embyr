@@ -317,7 +317,7 @@ CodeBlock[] parseBlocks(ParseTree pt) {
 					addIf!IfVar();
 					break;
 				case "Embyr.IfGameBlock":
-					addIf!IfVar();
+					addIf!IfGame();
 					break;
 				case "Embyr.SetVarBlock":
 					addAction!SetVar();
