@@ -79,6 +79,8 @@ int main(string[] args) {
 			return 5;
 		}
 	}
+	if(output == string.init)
+		return 0;
 	if(flags.plotSize != 0) {
 		foreach(d; decls)
 			if(d.size > flags.plotSize) 

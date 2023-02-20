@@ -690,5 +690,52 @@ class SelectObject : Action {
 	}
 }
 
+/// A block with a subaction
+class SubAction : CodeBlock {
+	string block;
+	string subAction;
+	string action;
+	string subIf;
+	JSONValue[] items;
+	
+	Tag[][string] actions() {
+		final switch(subIf) {
+			case "IF_ENTITY":
+				return IfEntity._actions;
+			case "IF_PLAYER":
+				return IfPlayer._actions;
+			case "IF_VAR":
+				return IfVar._actions;
+			case "IF_GAME":
+				return IfGame._actions;
+		}
+	}
+
+	this(JSONValue[] items, TagValue[] tagvs, string block, string action, string subAction, string subIf) {
+		this.block = block;
+		this.action = action;
+		this.subAction = subAction;
+		this.subIf = subIf;
+		this.items = items;
+		validateTags(this, "block", block, subAction, tagvs, actions[subAction]); 
+	}
+
+	JSONValue toJSON() {
+		auto v = JSONValue([
+			"id": "block",
+			"block": block,
+			"action": action,
+			"subAction": subAction
+		]);
+		v["args"] = ["items": items];
+		return v;
+	}
+
+	int size() {
+		return block == "repeat" ? 1 : 2;
+	}
+
+}
+
 // TODO: repeat while, select object by conditions, filter selection by conditions
 //       ^ all of these should probably have a common superclass
