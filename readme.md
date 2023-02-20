@@ -70,9 +70,6 @@ PLAYER_EVENT RightClick:
 This creates a definition for `stick`, and sets it to the item `item{id:"minecraft:stick",Count:1b}`. Now, any time after this definition, the identifier `stick` will be replaced by `item{id:"minecraft:stick",Count:1b}`. This is useful especially for commonly used items, which are rather verbose in NBT syntax.
 
 ## Things that still need to be implemented
-### Code Blocks
-- Select/Filter Objects by Condition
-- Repeat While
 ### Values
 - Particles (and also all related actions)
 ## Syntax Highlighting
